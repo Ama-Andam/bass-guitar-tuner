@@ -1,0 +1,242 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bass Tuner</title>
+<style>
+  :root {
+    --bg: #0f1216;
+    --panel: #161b22;
+    --ink: #e8edf2;
+    --muted: #7d8794;
+    --ring: #232a33;
+    --flat: #f2a341;
+    --sharp: #f2a341;
+    --intune: #34d17a;
+    --accent: #4a9eff;
+    --shadow: 0 12px 40px rgba(0,0,0,.45);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body {
+    background: radial-gradient(1200px 800px at 50% -10%, #1a2029 0%, var(--bg) 60%);
+    color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    min-height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 32px 16px 48px;
+    -webkit-font-smoothing: antialiased;
+  }
+  header { text-align: center; margin-bottom: 8px; }
+  header h1 {
+    font-size: 15px; font-weight: 600; letter-spacing: .18em;
+    text-transform: uppercase; color: var(--muted);
+  }
+
+  /* main readout */
+  .readout {
+    text-align: center;
+    margin: 18px 0 6px;
+    height: 150px;
+    display: flex; flex-direction: column; justify-content: center;
+  }
+  .note {
+    font-size: 96px; font-weight: 700; line-height: 1;
+    letter-spacing: -.02em;
+    transition: color .18s ease;
+  }
+  .note .oct { font-size: 34px; color: var(--muted); font-weight: 500; vertical-align: super; margin-left: 4px; }
+  .freq { margin-top: 10px; font-size: 15px; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .status {
+    margin-top: 4px; font-size: 13px; letter-spacing: .14em;
+    text-transform: uppercase; color: var(--muted); min-height: 16px;
+  }
+
+  /* cents meter */
+  .meter-wrap { width: min(460px, 92vw); margin: 8px auto 28px; }
+  .meter {
+    position: relative; height: 54px;
+    background: var(--panel);
+    border: 1px solid var(--ring);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  .meter .center-line {
+    position: absolute; left: 50%; top: 8px; bottom: 8px; width: 2px;
+    background: var(--intune); transform: translateX(-50%); opacity: .6;
+    border-radius: 2px;
+  }
+  .meter .ticks { position: absolute; inset: 0; }
+  .meter .tick {
+    position: absolute; top: 50%; width: 1px; height: 10px;
+    background: var(--ring); transform: translateY(-50%);
+  }
+  .needle {
+    position: absolute; top: 6px; bottom: 6px; width: 4px;
+    background: var(--accent); border-radius: 3px;
+    left: 50%; transform: translateX(-50%);
+    transition: left .12s ease, background .18s ease;
+    box-shadow: 0 0 12px rgba(74,158,255,.6);
+  }
+  .scale-labels {
+    display: flex; justify-content: space-between;
+    font-size: 11px; color: var(--muted); margin-top: 6px;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* circle of strings */
+  .circle-wrap { position: relative; width: min(300px, 84vw); aspect-ratio: 1; margin: 4px auto 0; }
+  svg { width: 100%; height: 100%; overflow: visible; }
+  .str-dot { transition: all .2s ease; cursor: default; }
+  .str-label { font-size: 15px; font-weight: 600; fill: var(--muted); transition: fill .2s ease; }
+  .str-label.active { fill: var(--ink); }
+  .circle-center {
+    fill: var(--muted); font-size: 12px; letter-spacing: .12em; text-transform: uppercase;
+  }
+
+  footer { margin-top: 30px; font-size: 12px; color: var(--muted); text-align: center; }
+</style>
+</head>
+<body>
+  <header><h1>Bass Tuner</h1></header>
+
+  <div class="readout">
+    <div class="note" id="note">–</div>
+    <div class="freq" id="freq">&nbsp;</div>
+    <div class="status" id="status">listening</div>
+  </div>
+
+  <div class="meter-wrap">
+    <div class="meter">
+      <div class="ticks" id="ticks"></div>
+      <div class="center-line"></div>
+      <div class="needle" id="needle"></div>
+    </div>
+    <div class="scale-labels"><span>-50</span><span>flat</span><span>0</span><span>sharp</span><span>+50</span></div>
+  </div>
+
+  <div class="circle-wrap">
+    <svg viewBox="0 0 300 300" id="circle"></svg>
+  </div>
+
+  <footer>open strings shown around the ring · light up when detected</footer>
+
+<script>
+  const strings = [];               // filled from /strings
+  const noteEl = document.getElementById('note');
+  const freqEl = document.getElementById('freq');
+  const statusEl = document.getElementById('status');
+  const needle = document.getElementById('needle');
+  const circle = document.getElementById('circle');
+  const ticks = document.getElementById('ticks');
+
+  // draw meter ticks
+  for (let c = -50; c <= 50; c += 10) {
+    const t = document.createElement('div');
+    t.className = 'tick';
+    t.style.left = (50 + c) + '%';
+    ticks.appendChild(t);
+  }
+
+  const SVGNS = 'http://www.w3.org/2000/svg';
+  function el(name, attrs) {
+    const e = document.createElementNS(SVGNS, name);
+    for (const k in attrs) e.setAttribute(k, attrs[k]);
+    return e;
+  }
+
+  function drawCircle() {
+    circle.innerHTML = '';
+    const cx = 150, cy = 150, r = 108;
+    // guide ring
+    circle.appendChild(el('circle', {cx, cy, r, fill:'none', stroke:'var(--ring)', 'stroke-width':1}));
+    const center = el('text', {x:cx, y:cy+4, 'text-anchor':'middle', class:'circle-center'});
+    center.textContent = 'strings';
+    circle.appendChild(center);
+
+    strings.forEach((s, i) => {
+      const angle = (-90 + i * (360 / strings.length)) * Math.PI / 180;
+      const x = cx + r * Math.cos(angle);
+      const y = cy + r * Math.sin(angle);
+      const dot = el('circle', {cx:x, cy:y, r:24, fill:'var(--panel)', stroke:'var(--ring)', 'stroke-width':2, class:'str-dot', id:'dot-'+s.name});
+      const label = el('text', {x:x, y:y+5, 'text-anchor':'middle', class:'str-label', id:'lbl-'+s.name});
+      label.textContent = s.name;
+      circle.appendChild(dot);
+      circle.appendChild(label);
+    });
+  }
+
+  function colorFor(direction) {
+    if (direction === 'in tune') return getComputedStyle(document.documentElement).getPropertyValue('--intune').trim();
+    if (direction === 'sharp' || direction === 'flat') return getComputedStyle(document.documentElement).getPropertyValue('--sharp').trim();
+    return getComputedStyle(document.documentElement).getPropertyValue('--muted').trim();
+  }
+
+  function highlightString(note, octave, active) {
+    strings.forEach(s => {
+      const dot = document.getElementById('dot-'+s.name);
+      const lbl = document.getElementById('lbl-'+s.name);
+      if (!dot) return;
+      const target = note + octave;
+      if (active && s.name === target) {
+        dot.setAttribute('fill', 'rgba(52,209,122,.18)');
+        dot.setAttribute('stroke', 'var(--intune)');
+        lbl.classList.add('active');
+      } else {
+        dot.setAttribute('fill', 'var(--panel)');
+        dot.setAttribute('stroke', 'var(--ring)');
+        lbl.classList.remove('active');
+      }
+    });
+  }
+
+  async function tick() {
+    try {
+      const r = await fetch('/pitch');
+      const d = await r.json();
+      if (d.active && d.note) {
+        const col = colorFor(d.direction);
+        noteEl.style.color = col;
+        noteEl.innerHTML = d.note + '<span class="oct">' + d.octave + '</span>';
+        freqEl.textContent = d.freq.toFixed(1) + ' Hz';
+        statusEl.textContent = d.direction;
+        statusEl.style.color = col;
+        // needle: clamp cents to +-50
+        const c = Math.max(-50, Math.min(50, d.cents));
+        needle.style.left = (50 + c) + '%';
+        needle.style.background = col;
+        highlightString(d.note, d.octave, true);
+      } else {
+        noteEl.style.color = 'var(--muted)';
+        noteEl.textContent = '–';
+        freqEl.innerHTML = '&nbsp;';
+        statusEl.textContent = d.direction || 'listening';
+        statusEl.style.color = 'var(--muted)';
+        needle.style.left = '50%';
+        needle.style.background = 'var(--muted)';
+        highlightString(null, null, false);
+      }
+    } catch (e) {
+      statusEl.textContent = 'no connection';
+    }
+  }
+
+  async function init() {
+    try {
+      const r = await fetch('/strings');
+      const list = await r.json();
+      list.forEach(s => strings.push(s));
+    } catch (e) {
+      // fallback: 5-string
+      ['B0','E1','A1','D2','G2'].forEach(n => strings.push({name:n}));
+    }
+    drawCircle();
+    setInterval(tick, 120);
+  }
+  init();
+</script>
+</body>
+</html>

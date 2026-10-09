@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 260" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif">
+  <rect width="900" height="260" rx="14" fill="#0f1216"/>
+  <text x="32" y="46" fill="#7d8794" font-size="13" letter-spacing="3">WAVENODE  ·  SIGNAL CHAIN</text>
+
+  <!-- stages -->
+  <g>
+    <rect x="32"  y="92" width="118" height="64" rx="10" fill="#161b22" stroke="#232a33" stroke-width="1.5"/>
+    <text x="91" y="120" fill="#e8edf2" font-size="13" font-weight="600" text-anchor="middle">String</text>
+    <text x="91" y="138" fill="#7d8794" font-size="11" text-anchor="middle">31–98 Hz</text>
+
+    <rect x="176" y="92" width="118" height="64" rx="10" fill="#161b22" stroke="#232a33" stroke-width="1.5"/>
+    <text x="235" y="120" fill="#e8edf2" font-size="13" font-weight="600" text-anchor="middle">Mic +</text>
+    <text x="235" y="138" fill="#7d8794" font-size="11" text-anchor="middle">preamp</text>
+
+    <rect x="320" y="92" width="118" height="64" rx="10" fill="#161b22" stroke="#232a33" stroke-width="1.5"/>
+    <text x="379" y="116" fill="#e8edf2" font-size="13" font-weight="600" text-anchor="middle">Bias +</text>
+    <text x="379" y="134" fill="#e8edf2" font-size="13" font-weight="600" text-anchor="middle">anti-alias</text>
+
+    <rect x="464" y="92" width="118" height="64" rx="10" fill="#161b22" stroke="#232a33" stroke-width="1.5"/>
+    <text x="523" y="116" fill="#e8edf2" font-size="13" font-weight="600" text-anchor="middle">ADC</text>
+    <text x="523" y="134" fill="#7d8794" font-size="11" text-anchor="middle">2 kHz, 10-bit</text>
+
+    <rect x="608" y="92" width="118" height="64" rx="10" fill="#161b22" stroke="#34d17a" stroke-width="1.5"/>
+    <text x="667" y="116" fill="#e8edf2" font-size="13" font-weight="600" text-anchor="middle">Autocorr</text>
+    <text x="667" y="134" fill="#7d8794" font-size="11" text-anchor="middle">+ median</text>
+
+    <rect x="752" y="92" width="116" height="64" rx="10" fill="#161b22" stroke="#34d17a" stroke-width="1.5"/>
+    <text x="810" y="116" fill="#e8edf2" font-size="13" font-weight="600" text-anchor="middle">Note +</text>
+    <text x="810" y="134" fill="#34d17a" font-size="11" text-anchor="middle">cents</text>
+  </g>
+
+  <!-- arrows -->
+  <g stroke="#4a9eff" stroke-width="2" fill="#4a9eff">
+    <line x1="150" y1="124" x2="174" y2="124"/><polygon points="174,124 166,120 166,128"/>
+    <line x1="294" y1="124" x2="318" y2="124"/><polygon points="318,124 310,120 310,128"/>
+    <line x1="438" y1="124" x2="462" y2="124"/><polygon points="462,124 454,120 454,128"/>
+    <line x1="582" y1="124" x2="606" y2="124"/><polygon points="606,124 598,120 598,128"/>
+    <line x1="726" y1="124" x2="750" y2="124"/><polygon points="750,124 742,120 742,128"/>
+  </g>
+
+  <!-- board vs host band -->
+  <line x1="444" y1="178" x2="444" y2="206" stroke="#2a3340" stroke-width="1" stroke-dasharray="4 4"/>
+  <text x="238" y="200" fill="#5f6b78" font-size="11" text-anchor="middle">on the WaveNode board</text>
+  <text x="650" y="200" fill="#5f6b78" font-size="11" text-anchor="middle">on the host (Jetson)</text>
+</svg>
