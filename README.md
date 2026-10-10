@@ -50,15 +50,46 @@ Then open `http://<host-ip>:5000` in a browser on the same network. The firmware
 is in `firmware/`; flash it with the Arduino IDE. `SERIAL_PORT` in `app.py`
 defaults to `/dev/ttyACM0`.
 
+## WaveNode hardware
+
+A custom Arduino-compatible board: an ATmega328P with USB-to-serial (FT232RL),
+a 16 MHz clock, and an op-amp microphone preamp feeding the ADC. Designed in
+Altium.
+
+### Schematic
+
+![WaveNode schematic](docs/schematic.png)
+
+The four blocks: USB-C power and FT232RL USB-to-serial, the ATmega328P core with
+crystal and reset, the Arduino-style pin headers, and the op-amp mic front-end
+(electret bias, inverting preamp, bias network).
+
+### PCB layout
+
+3D render:
+
+![WaveNode PCB 3D render](docs/pcb-3d.png)
+
+Top and bottom:
+
+![WaveNode PCB top](docs/pcb-top.png)
+![WaveNode PCB bottom](docs/pcb-bottom.png)
+
+Routing (Altium):
+
+![WaveNode PCB layout](docs/pcb-layout.png)
+
+Source files are in `hardware/altium/` (`.PrjPcb`, `.SchDoc`, `.PcbDoc`); the
+schematic PDF is in `hardware/`.
+
 ## Project layout
 
 ```
 README.md                      this file
-docs/                          block diagrams, screenshots, board photos
+docs/                          block diagrams, schematic, board images
 hardware/
-  schematic/                   WaveNode schematic (Altium + PDF)
-  pcb/                         layout, 3D render, gerbers
-  bom/                         bill of materials
+  Bass Tuner Schematic.pdf     viewable schematic
+  altium/                      Altium source: project, schematic, PCB
 firmware/bass_tuner_nano.ino   samples the mic, streams over serial
 app.py                         host backend: serial read, detection, API
 index.html                     tuner frontend
@@ -70,8 +101,8 @@ requirements.txt               Python dependencies
 - [x] Working breadboard prototype (mic, Arduino, host) with live tuning
 - [x] Pitch detection, note/cents readout, web UI
 - [x] System and signal-chain block diagrams
-- [ ] WaveNode schematic (circuit design)
-- [ ] PCB layout
+- [x] WaveNode schematic (circuit design, Altium)
+- [x] PCB layout
 - [ ] Fabrication via JLCPCB and bring-up
 
 ## Design notes
