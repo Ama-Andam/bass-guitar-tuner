@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Bass Tuner</title>
+<title>WaveNode Tuner</title>
 <style>
   :root {
     --bg: #0f1216;
@@ -31,8 +31,12 @@
     -webkit-font-smoothing: antialiased;
   }
   header { text-align: center; margin-bottom: 8px; }
-  header h1 {
-    font-size: 15px; font-weight: 600; letter-spacing: .18em;
+  .wordmark {
+    font-size: 24px; font-weight: 700; letter-spacing: .01em; color: var(--ink);
+  }
+  .wordmark .wave { color: var(--accent); }
+  .tagline {
+    margin-top: 5px; font-size: 12px; font-weight: 600; letter-spacing: .24em;
     text-transform: uppercase; color: var(--muted);
   }
 
@@ -101,7 +105,10 @@
 </style>
 </head>
 <body>
-  <header><h1>Bass Tuner</h1></header>
+  <header>
+    <div class="wordmark"><span class="wave">Wave</span>Node</div>
+    <div class="tagline">Bass Tuner</div>
+  </header>
 
   <div class="readout">
     <div class="note" id="note">–</div>
@@ -122,7 +129,7 @@
     <svg viewBox="0 0 300 300" id="circle"></svg>
   </div>
 
-  <footer>open strings shown around the ring · light up when detected</footer>
+  <footer>WaveNode · custom Arduino-compatible board with onboard audio front-end</footer>
 
 <script>
   const strings = [];               // filled from /strings

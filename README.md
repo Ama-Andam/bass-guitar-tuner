@@ -1,15 +1,11 @@
 # WaveNode
 
-<!-- TODO (Emmanuela): write a short intro in your own voice here.
-     A couple of sentences on what WaveNode is and why you built it.
-     Everything below is drafted for you to edit, cut, or rework. -->
-
 WaveNode is a custom Arduino-compatible development board with an onboard
 microphone front-end: an ATmega328P plus a mic preamp, biasing, and
 anti-alias filtering wired into the ADC. It is meant to be reused across audio
 projects. The first thing built on it is a real-time tuner for 5-string bass.
 
-![System block diagram](docs/block-diagram.svg)
+<img src="docs/block-diagram.svg" width="720" alt="System block diagram">
 
 ## The board and the demo
 
@@ -20,9 +16,16 @@ projects. The first thing built on it is a real-time tuner for 5-string bass.
   live note readout. Pluck a string and a browser shows the note, cents sharp or
   flat, and lights up the matching string (B0, E1, A1, D2, G2).
 
+## The tuner in action
+
+<img src="docs/webapp-intune.png" width="320" alt="Web tuner showing a note in tune">&nbsp;&nbsp;<img src="docs/webapp-offpitch.png" width="320" alt="Web tuner showing a note off pitch">
+
+The web UI updates live: the note and octave, the frequency, a needle that swings
+flat or sharp and turns green in tune, and the matched string lit on the ring.
+
 ## Signal chain
 
-![Signal chain](docs/signal-chain.svg)
+<img src="docs/signal-chain.svg" width="720" alt="Signal chain">
 
 The analog capture and conditioning happen on the WaveNode board. Detection and
 display run on a host (a Jetson Nano during development):
@@ -58,26 +61,19 @@ Altium.
 
 ### Schematic
 
-![WaveNode schematic](docs/schematic.png)
+<img src="docs/schematic.png" width="760" alt="WaveNode schematic">
 
 The four blocks: USB-C power and FT232RL USB-to-serial, the ATmega328P core with
 crystal and reset, the Arduino-style pin headers, and the op-amp mic front-end
 (electret bias, inverting preamp, bias network).
 
-### PCB layout
+### PCB
 
-3D render:
+<img src="docs/pcb-3d.png" width="460" alt="WaveNode PCB 3D render">
 
-![WaveNode PCB 3D render](docs/pcb-3d.png)
+<img src="docs/pcb-top.png" width="240" alt="PCB top">&nbsp;&nbsp;<img src="docs/pcb-bottom.png" width="240" alt="PCB bottom">
 
-Top and bottom:
-
-![WaveNode PCB top](docs/pcb-top.png)
-![WaveNode PCB bottom](docs/pcb-bottom.png)
-
-Routing (Altium):
-
-![WaveNode PCB layout](docs/pcb-layout.png)
+<img src="docs/pcb-layout.png" width="280" alt="PCB routing in Altium">
 
 Source files are in `hardware/altium/` (`.PrjPcb`, `.SchDoc`, `.PcbDoc`); the
 schematic PDF is in `hardware/`.
@@ -96,23 +92,13 @@ index.html                     tuner frontend
 requirements.txt               Python dependencies
 ```
 
-## Project status
-
-- [x] Working breadboard prototype (mic, Arduino, host) with live tuning
-- [x] Pitch detection, note/cents readout, web UI
-- [x] System and signal-chain block diagrams
-- [x] WaveNode schematic (circuit design, Altium)
-- [x] PCB layout
-- [ ] Fabrication via JLCPCB and bring-up
-
 ## Design notes
 
-Real findings from the prototype, kept honestly:
-
-- **Microphone sensitivity.** A bare electret into the ADC gave a weak signal for
-  quiet low bass. WaveNode addresses this directly by designing a proper preamp
-  and bias/filter front-end onto the board rather than relying on a raw mic.
-- **Sample rate vs. low-end resolution.** At 2 kHz, lag steps are coarse at the
-  lowest notes; parabolic interpolation helps refine the estimate.
-- **Subharmonic detection.** The high string can occasionally lock onto a lower
-  octave; stronger subharmonic rejection is the fix.
+- **Microphone front-end.** A bare electret into the ADC gives a weak signal for
+  quiet low bass, so WaveNode puts a proper op-amp preamp with bias and filtering
+  on the board, feeding a clean, centered signal into the ADC.
+- **Sample rate and resolution.** Sampling at 2 kHz covers the bass range (B0 to
+  G2) with headroom; parabolic interpolation on the autocorrelation peak refines
+  the estimate at the lowest notes.
+- **Detection.** Autocorrelation with a median filter over recent frames gives a
+  stable reading, and a short hold keeps a decaying pluck from flickering.
